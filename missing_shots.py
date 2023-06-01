@@ -23,16 +23,24 @@ def shot_list(filename_list):
     shot_list = []
     for filename in filename_list:
         shot_list.append(int(filename[:5]))
-    shot_list.sort()
+    # shot_list.sort()
     return shot_list
 
-
+'''
 def get_filenames(input_dir):
-    ''' Creates a list of filenames in input_dir. '''
     basepath = Path(input_dir)
     filenames = (os.path.basename(entry) for \
       entry in basepath.iterdir() if entry.is_file())
     return list(filenames)
+'''
+
+def get_filenames(input_dir):
+    ''' Create a list of filenames in input_dir sorted in time order. '''
+    basepath = Path(input_dir)
+    os.chdir(basepath)
+    filenames = list(filter(os.path.isfile, os.listdir(basepath)))
+    filenames.sort(key=lambda x: os.path.getmtime(x))
+    return filenames
 
 
 def parse_arguments(*args):
@@ -41,18 +49,19 @@ def parse_arguments(*args):
         args = ''.join(*args)
     except TypeError:
         logging.info('no arguments passed, using defaults:')
-        #logging.
+
 
 def main(directory_path):
     files = get_filenames(directory_path)
+    # logging.info('files: {}'.format(list(files)))
     shots = shot_list(files)
-
-    missing = find_missing(shots)
-    number_expected = shots[-1] - shots[0] + 1
-    logging.info('missing: {}'.format(get_ranges(find_missing(shots))))
+    logging.info('shots: {}'.format(shots))
+    number_expected = abs(shots[-1] - shots[0]) + 1
+    # logging.info('missing: {}'.format(get_ranges(find_missing(shots))))
     display_first_last(shots)
     logging.info('first shot: {}'.format(shots[0]))
     logging.info('last shot: {}'.format(shots[-1]))
+    missing = find_missing(shots)
     logging.info('first missing shot: {}'.format(missing[0]))
     logging.info('last missing shot: {}'.format(missing[-1]))
     logging.info('number expected files: {}'.format(number_expected))
