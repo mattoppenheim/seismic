@@ -5,7 +5,7 @@ Looks for a list of file names in final_plot_names.md.
 Run with a sequence number e.g.
 python3 check_final_plots.py 40
 June 2023 Matthew Oppenheim
-v0 not yet working
+v1.1 Tested and working.
 '''
 
 
@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('sequence', type=str, help='sequence to check for final plots')
 
 # minimum file size in bytes
-MIN_SIZE = 102400 # 100 kB
+MIN_SIZE = 31000
 # for testing
 SEQ = 40
 
