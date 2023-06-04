@@ -1,10 +1,10 @@
 #!/usr/bin/python3
-''' List missing shots in a directory.
+''' List missing shots in dropbox1 and dropbox2 for a sequence.
 Expects a sequence number to be supplied.
 To run on e.g. sequence 38 type:
 ./missing_shots.py 38
-June 2023 Matthew Oppenheim.
-v1.1 Displays ranges of missing shots.
+Last update: 2023-06-04 Matthew Oppenheim.
+
 '''
 
 import argparse
@@ -20,10 +20,10 @@ logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 SEQ = '40'
 
 # base directory for folders containing shots
-DROPBOX_DIR = r'/nfs/awa-data01/dropbox1/dropobp/'
+DROPBOX1_DIR = r'/nfs/awa-data01/dropbox1/dropobp/'
 
 # Directory used for re-export
-# DROPBOX_DIR = r'/nfs/awa-data02/dropbox2/dropobp/38_not_used'
+DROPBOX2_DIR = r'/nfs/awa-data02/dropbox2/dropobp/'
 
 
 parser = argparse.ArgumentParser()
@@ -50,8 +50,11 @@ def display_missing(missing):
     logging.info('number missing shots: {}'.format(len(missing)))
 
 
-def dropbox_dir_path(sequence):
-    return os.path.join(DROPBOX_DIR, sequence)
+def dropbox_dir_path(sequence, dropbox_dir):
+    dropbox_dir_path = os.path.join(dropbox_dir, sequence)
+    if not os.path.exists(dropbox_dir_path):
+        exit_code('cannot find directory: {}'.format(dropbox_dir_path))
+    return os.path.join(dropbox_dir, sequence)
 
 
 def exit_code(message):
@@ -92,8 +95,8 @@ def parse_arguments(*args):
 
 def main(directory_path, args):
     sequence = args.sequence.__str__()
-    logging.info('seq {}'.format(sequence))
-    directory_path = dropbox_dir_path(sequence)
+    logging.info('\nseq {}'.format(sequence))
+    directory_path = dropbox_dir_path(sequence, directory_path)
     logging.info('directory: {}'.format(directory_path))
     files = get_filenames(directory_path)
     shots = shot_list(files)
@@ -108,9 +111,10 @@ def main(directory_path, args):
 
 if __name__ == '__main__':
     # comment out the following line for testing
-    args = parser.parse_args()
+    # args = parser.parse_args()
     # uncomment the line below for testing
-    #args = argparse.Namespace(sequence=38)
-    main(DROPBOX_DIR, args)
+    args = argparse.Namespace(sequence=41)
+    main(DROPBOX1_DIR, args)
+    main(DROPBOX2_DIR, args)
 
 
