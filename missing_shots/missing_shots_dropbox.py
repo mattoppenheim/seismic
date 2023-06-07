@@ -64,15 +64,6 @@ def exit_code(message):
     raise SystemExit
 
 
-def shot_list(filename_list):
-    ''' Extract shots from the filenames. '''
-    shot_list = []
-    for filename in filename_list:
-        shot_list.append(int(filename[:5]))
-    # shot_list.sort()
-    return shot_list
-
-
 def get_filenames(input_dir):
     ''' Create a list of filenames in input_dir sorted in time order. '''
     basepath = Path(input_dir)
@@ -93,6 +84,26 @@ def parse_arguments(*args):
         logging.info('no arguments passed, using defaults:')
 
 
+def shot_list(filename_list):
+    ''' Extract shots from the filenames. '''
+    shot_list = []
+    for filename in filename_list:
+        shot_list.append(int(filename[:5]))
+    # shot_list.sort()
+    return shot_list
+
+
+def sort_shots(shot_list):
+    ''' Sort the shots. '''
+    # sometimes the shots are saved out of time order
+    if shot_list[0] > shot_list[-1]:
+        shot_list.sort(reverse=True)
+    else:
+        shot_list.sort()
+    logging.debug('shots_list: {}'.format(shot_list))
+    return shot_list
+
+
 def main(directory_path, args):
     sequence = args.sequence.__str__()
     logging.info('\nseq {}'.format(sequence))
@@ -100,6 +111,7 @@ def main(directory_path, args):
     logging.info('directory: {}'.format(directory_path))
     files = get_filenames(directory_path)
     shots = shot_list(files)
+    shots = sort_shots(shots)
     logging.info('first shot: {}'.format(shots[0]))
     logging.info('last shot: {}'.format(shots[-1]))
     missing = find_missing(shots)
@@ -111,9 +123,9 @@ def main(directory_path, args):
 
 if __name__ == '__main__':
     # comment out the following line for testing
-    # args = parser.parse_args()
+    args = parser.parse_args()
     # uncomment the line below for testing
-    args = argparse.Namespace(sequence=41)
+    # args = argparse.Namespace(sequence=41)
     main(DROPBOX1_DIR, args)
     main(DROPBOX2_DIR, args)
 
