@@ -5,7 +5,8 @@ To run on e.g. sequence 38 type:
 ./missing_shots.py 38
 Dependancy:
     range_strings.py needs to be in the same directory as this script
-Last update: 2023-06-08 Matthew Oppenheim.
+pip3 install termcolor for coloured output text.
+Last update: 2023-06-09 Matthew Oppenheim.
 '''
 
 import argparse
@@ -14,6 +15,11 @@ import os
 from pathlib import Path
 from range_strings import find_duplicates, find_missing, get_ranges
 import sys
+# Stu added termcolor to highlight missing shots
+try:
+    from termcolor import colored
+except ModuleNotFoundError as e:
+    pass
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -25,7 +31,6 @@ DROPBOX1_DIR = r'/nfs/awa-data01/dropbox1/dropobp/'
 
 # Directory used for re-export
 DROPBOX2_DIR = r'/nfs/awa-data02/dropbox2/dropobp/'
-
 
 
 class MissingShots():
@@ -41,15 +46,21 @@ class MissingShots():
         if len(duplicates) == 0:
             logging.info('no duplicates found')
         else:
-            logging.info('duplicates: {}'.format(find_duplicates(shots)))
+            logging.info('duplicates: {}'.format(get_ranges(find_duplicates(shots))))
 
 
     def display_missing(self, missing):
         ''' Display missing shot information. '''
         if len(missing) == 0:
-            logging.info('no missing shots')
+            logging.info('*** no missing shots ***')
             return
-        logging.info('missing shots: {}'.format(get_ranges(missing)))
+        logging.info('')
+        # if termcolor is installed, highlight missing shots
+        try:
+            logging.info((colored('!! !! !! ' 'missing shots !! -----> : {}'.format(get_ranges(missing)),'red')))
+        except NameError as e:
+            logging.info('*** missing shots range ***\n\t{}'.format(get_ranges(missing)))
+        logging.info('')
         logging.info('first missing shot: {}'.format(missing[0]))
         logging.info('last missing shot: {}'.format(missing[-1]))
         logging.info('number missing shots: {}'.format(len(missing)))
@@ -139,6 +150,15 @@ class MissingShots():
         self.display_shot_info(self.sorted_shots)
 
 
+def sort_list(shot_list, is_incrementing):
+    ''' Sort shot lists. '''
+    if is_incrementing:
+        shot_list.sort()
+    else:
+        shot_list.sort(reverse=True)
+    return shot_list
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, default=SEQ, help='sequence to find missing shots')
@@ -151,22 +171,15 @@ if __name__ == '__main__':
     drop1_incrementing = dropped1.incrementing
     drop2_incrementing = dropped2.incrementing
     drop1_shots = dropped1.shots
-    drop2_shots = dropped1.shots
-    # I don't know why drop1_shots and drop2_shots are always returned sorted
-    # in ascending order, not in the order they exist in the class
-    if drop1_incrementing:
-        drop1_shots.sort()
-    else:
-        drop1_shots.sort(reverse=True)
-    if drop2_incrementing:
-        drop2_shots.sort()
-    else:
-        drop2_shots.sort(reverse=True)
-    drop2_shots = dropped2.sorted_shots
+    drop2_shots = dropped2.shots
+    # I don't know why the class variables drop1_shots and drop2_shots are
+    # always returned sorted in ascending order, not in the order they
+    # exist in the class, so I added a sort_list function
+    drop1_shots = sort_list(drop1_shots, drop1_incrementing)
+    drop2_shots = sort_list(drop2_shots, drop2_incrementing)
     all_shots = [*drop1_shots, *drop2_shots]
     sorted_all_shots = dropped1.sort_shots(all_shots)
     logging.info('\nall_shots first: {} last: {}\n'.format(all_shots[0], all_shots[-1]))
     logging.info('\nCombined shots for dropbox1 and dropbox2')
-    logging.info('\nranges for sorted_all_shots: {}'.format(get_ranges(all_shots)))
     dropped1.display_shot_info(sorted_all_shots)
 
