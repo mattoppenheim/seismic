@@ -8,7 +8,8 @@ duplicates: [22]
 ranges: 50,25,23-20,9-6,3-1
 missing: 49-26,24,19-10,5-4
 
-v1.1 Matthew Oppenheim 2023
+Matthew Oppenheim
+Last update: 2023_06_09
 '''
 
 import logging
@@ -16,10 +17,8 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 # examples used for testing
-in_list = [5,7,9,8,6, 21,20, 3,2,1, 22,23, 50, 22, 22]
 in_list = [25,7,9,8,6, 21,20, 3,2,1, 22,23, 50, 22, 22]
-in_list = [25,7,9]
-
+ranges = '50,25,23-20,9-6,3-1'
 
 def consecutives(ranges):
     ''' Calculate consecutive ranges from tuple list. '''
@@ -42,6 +41,8 @@ def find_duplicates(in_list):
 
 def find_missing(in_list):
     ''' Find missing values in a list. '''
+    if len(in_list) == 0:
+        return []
     incrementing = is_inc(in_list)
     in_list.sort()
     non_missing = [x for x in range(in_list[0], in_list[-1]+1)]
@@ -63,6 +64,9 @@ def is_inc(in_list):
 
 
 def get_ranges(in_list):
+    ''' Return ranges of values in in_list. '''
+    if len(in_list) == 0:
+        return []
     inc = is_inc(in_list)
     duplicates = find_duplicates(in_list)
     if duplicates:
@@ -75,12 +79,10 @@ def get_ranges(in_list):
     return ranges
 
 
-def printout(text):
-    print('ranges: {}'.format(text))
-
-
 def range_tuples(in_list):
     ''' Create a list of tuples of ranges of consecutive numbers. '''
+    if len(in_list) == 0:
+        return []
     range_tuples = []
     # in_list = remove_multiples(in_list)
     first = last = None  # first and last number of current consecutive range
@@ -99,12 +101,13 @@ def range_tuples(in_list):
 
 
 def remove_multiples(in_list):
+    ''' Remove repeated values. '''
     output_list = set(in_list)
     return list(output_list)
 
 
 def reverse_ranges(ranges):
-    ''' Reverse a list of ranges. '''
+    ''' Reverse a list of range tuples. '''
     reversed = []
     ranges = ranges.split(',')
     ranges = ranges[-1::-1]
@@ -121,5 +124,5 @@ def reverse_ranges(ranges):
 if __name__ == '__main__':
     logging.info('ranges: {}'.format(get_ranges(in_list)))
     logging.info('missing: {}'.format(get_ranges(find_missing(in_list))))
-
+    logging.info('reversed: {}'.format(reverse_ranges(ranges)))
 

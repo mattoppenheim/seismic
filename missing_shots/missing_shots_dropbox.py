@@ -16,6 +16,7 @@ from pathlib import Path
 from range_strings import find_duplicates, find_missing, get_ranges
 import sys
 # Stu added termcolor to highlight missing shots
+# install with 'pip3 install termcolor -U'
 try:
     from termcolor import colored
 except ModuleNotFoundError as e:
@@ -52,19 +53,18 @@ class MissingShots():
     def display_missing(self, missing):
         ''' Display missing shot information. '''
         if len(missing) == 0:
-            logging.info('*** no missing shots ***')
+            logging.info('+++ no missing shots +++')
             return
         logging.info('')
         # if termcolor is installed, highlight missing shots
         try:
             logging.info((colored('!! !! !! ' 'missing shots !! -----> : {}'.format(get_ranges(missing)),'red')))
         except NameError as e:
-            logging.info('*** missing shots range ***\n\t{}'.format(get_ranges(missing)))
+            logging.info('+++ missing shots range +++\n\t{}'.format(get_ranges(missing)))
         logging.info('')
         logging.info('first missing shot: {}'.format(missing[0]))
         logging.info('last missing shot: {}'.format(missing[-1]))
         logging.info('number missing shots: {}'.format(len(missing)))
-
 
 
     def display_shot_info(self, shots):
@@ -179,7 +179,6 @@ if __name__ == '__main__':
     drop2_shots = sort_list(drop2_shots, drop2_incrementing)
     all_shots = [*drop1_shots, *drop2_shots]
     sorted_all_shots = dropped1.sort_shots(all_shots)
-    logging.info('\nall_shots first: {} last: {}\n'.format(all_shots[0], all_shots[-1]))
     logging.info('\nCombined shots for dropbox1 and dropbox2')
     dropped1.display_shot_info(sorted_all_shots)
 
