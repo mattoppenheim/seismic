@@ -111,6 +111,13 @@ class MissingShots():
         return True
 
 
+    def correct_shot_name(self, file_name):
+        ''' Check that file_name is a valid segd file. '''
+        if file_name.endswith('.segd') and file_name[:5].isdigit():
+            return True
+        return False
+
+
     def parse_arguments(self, *args):
         ''' Parse command line arguments. '''
         try:
@@ -123,6 +130,9 @@ class MissingShots():
         ''' Extract shots from the filenames. '''
         shot_list = []
         for filename in filename_list:
+            # check that the file is a valid segd file
+            if not self.correct_shot_name(filename):
+                continue
             shot_list.append(int(filename[:5]))
         return shot_list
 
