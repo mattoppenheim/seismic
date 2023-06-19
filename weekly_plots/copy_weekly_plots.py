@@ -73,15 +73,15 @@ def exit_code(message):
 
 def find_extra_plots(source_plot_dir_path, plotslist):
     ''' Create a list of files in the source directory that are not in the weekly plot list. '''
-    missing_plots = []
+    extra_plots = []
     plot_files = os.listdir(source_plot_dir_path)
     for plot in plot_files :
         plot_sourcepath = os.path.join(source_plot_dir_path, plot)
         if os.path.isfile(plot_sourcepath):
             if plot not in plotslist:
                 logging.info('extra plot file in source directory: {}'.format(plot))
-                missing_plots.append(plot)
-    return missing_plots
+                extra_plots.append(plot)
+    return extra_plots
 
 
 def paths_dictionary(plots_to_copy, source_directory, target_directory, sequence):
@@ -151,8 +151,9 @@ def copy_weekly_plots(sequence, plots_sub_directory, plots_list):
     # create a list of plots to look for
     plotslist = plots_to_find(plots_list, sequence)
 
-    # see if there are extra plots in the source directory that are not in the
-    # weekly plot list
+    # see if there are extra plots in the source directory that are not in
+    # plots_list
+
     extra_plots = find_extra_plots(source_dir_path, plotslist)
     if len(extra_plots) == 0:
         logging.info('no extra plots in the source directory')
