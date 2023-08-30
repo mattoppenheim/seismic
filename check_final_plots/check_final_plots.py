@@ -5,7 +5,7 @@ Looks for a list of file names in final_plot_names.md.
 Run with a sequence number e.g.
 python3 check_final_plots.py 40
 June 2023 Matthew Oppenheim
-v1.1 Tested and working.
+Last update: 2023_08_18 AMU
 '''
 
 
@@ -13,10 +13,12 @@ import argparse
 import os
 from pathlib import Path
 import logging
+import subprocess
 import sys
 
-PLOTNAMES = r'plot_names.md'
-PLOTS_BASE_DIR = r'/nfs/awa-data01/Reveal_Projects/3163_CGG_NVG_3D_2023/SuperVision/'
+
+EXPECTED_PLOTS= r'/home/amuobpproc05/Documents/matt/python/shearwater_scripts/check_final_plots/plot_names.md'
+PLOTS_BASE_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/SuperVision'
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -24,25 +26,28 @@ parser = argparse.ArgumentParser()
 parser.add_argument('sequence', type=str, help='sequence to check for final plots')
 
 # minimum file size in bytes
-MIN_SIZE = 31000
+MIN_SIZE = 29000
 # for testing
 SEQ = 40
 
-def check_file_size(filepath):
-    ''' Checks that the file is above a size. '''
-    try:
-        filesize = os.path.getsize(filepath)
-    except Exception as e:
-        logging.info('error getting filesize for {}: {}'.format(filepath,e))
-        return
-    if filesize < MIN_SIZE:
-        logging.info('*** filesize below minimum size: {}\n'.format(filepath))
+def check_file_size(found_plots, PLOTS_BASE_DIR, sequence):
+    for plot in found_plots:
+        plot_filepath = os.path.join(PLOTS_BASE_DIR, sequence, plot)
+        ''' Checks that the file is above a size. '''
+        try:
+            filesize = os.path.getsize(plot_filepath)
+        except Exception as e:
+            logging.info('error getting filesize for {}: {}'.format(plot_filepath,e))
+            return
+        if filesize < MIN_SIZE:
+            logging.info('*** filesize below minimum size: {}\n'.format(plot_filepath))
 
 
 def check_plots(plots_directory, seq, plot_names_list):
     ''' Check that plots exist and have size and remove from the plot_names_list. '''
     seq = seq.zfill(3)
     for filename in os.listdir(plots_directory):
+        filename = filename.strip()
         if filename.startswith(seq):
             # remove the found filename suffix from the suffices list
             plot_names_list = update_plot_names_list(plot_names_list, filename)
@@ -62,50 +67,72 @@ def exit_code(message):
     raise SystemExit
 
 
-def plots_directory_path(basepath, sequence):
-    ''' Find the directory containing the plots. '''
-    plots_directory_path = os.path.join(basepath, sequence.zfill(3))
-    if not os.path.exists(plots_directory_path):
-        exit_code('cannot find plots directory at: {}'.format(plots_directory_path))
-    logging.info('found plots directory at: {}'.format(plots_directory_path))
-    return plots_directory_path
-
-
-def plot_names_list(plot_names_filename):
+def expected_suffices(expected_suffices_filepath):
     ''' Create a list of expected filename suffices. '''
-    if not os.path.isfile(plot_names_filename):
-        exit_code('cannot find file containing plotnames in script directory: {}'.format(plot_names_filename))
-    logging.info('looking for expected plot names in: {}'.format(plot_names_filename))
-    plot_suffices = []
-    with open(plot_names_filename, 'r') as plotnames:
-        next(plotnames)
+    if not os.path.isfile(expected_suffices_filepath):
+        exit_code('cannot find file containing plotnames: {}'.format(expected_suffices_filepath))
+    logging.info('looking for expected plot names in: {}'.format(expected_suffices_filepath))
+    suffices = []
+    with open(expected_suffices_filepath, 'r') as plotnames:
         for plotname in plotnames:
-            plot_suffices.append(plotname.strip())
-    return plot_suffices
+            suffices.append(plotname.strip())
+    return suffices
 
 
-def update_plot_names_list(plot_names_list, found_plot_suffix):
-    ''' Remove found_plot_suffix from plot_names_list. '''
-    filename_suffix = found_plot_suffix.split('-')[2:]
-    filename_suffix = '-'.join(filename_suffix)
-    filename_suffix = '{}{}'.format('-', filename_suffix)
-    try:
-        plot_names_list.remove(filename_suffix)
-    except ValueError as e:
-        logging.info('*** unexpected plot ending: {}'.format(filename_suffix))
-    return plot_names_list
+def find_extra_plots(expected_plots, found_plots):
+    ''' Find extra plots. '''
+    extra = set(found_plots) - set(expected_plots)
+    logging.debug('\nextra_plots: {}\n'.format(extra))
+    return extra
+
+
+def find_missing_plots(expected_plots, found_plots):
+    ''' Find missing plots. '''
+    missing = set(expected_plots) - set(found_plots)
+    logging.debug('\nmissing_plots: {}\n'.format(missing))
+    return missing
+
+
+def find_plots(basedir, seq):
+    ''' Create a list of all plots for sequence <seq> in subfolders of <basedir>. '''
+    basedir = Path(basedir)
+    # run linux find command e.g. 'find . -name '049*''
+    find_command = "find {} -name '{}*'".format(basedir, seq.zfill(3))
+    logging.debug('find_command: {}'.format(find_command))
+    # output is a single string, split on newline characters to get a list
+    plots_list = subprocess.getoutput(find_command).split('\n')
+    return plots_list
+
+
+def found_plot_suffices(found_plots):
+    ''' Create a list of suffices from <found_plots>. '''
+    found_plots_list = []
+    for plot_path in found_plots:
+        plot_suffix = os.path.basename(plot_path)
+        plot_suffix = plot_suffix.split('-')
+        plot_suffix = '{}{}'.format('-','-'.join(plot_suffix[2:]))
+        found_plots_list.append(plot_suffix)
+    logging.debug('\nfound_plots: {}\n'.format(found_plots_list))
+    return found_plots_list
 
 
 def main(directory_path, args):
-    sequence = args.sequence.__str__()
-    plots_directory = plots_directory_path(directory_path, sequence)
-    plot_names = plot_names_list(PLOTNAMES)
-    # the found plots are removed from the plot_names list
-    plot_names = check_plots(plots_directory, sequence, plot_names)
-    if len(plot_names) != 0:
-        logging.info('\n*** plots not found: {}'.format(plot_names))
-    else:
-        logging.info('\n*** all expected plots found')
+    sequence = args.sequence.__str__().zfill(3)
+    found_plots = find_plots(PLOTS_BASE_DIR, sequence)
+    logging.debug('found_plots: {}'.format(found_plots))
+    check_file_size(found_plots, PLOTS_BASE_DIR, sequence)
+    found_plots = found_plot_suffices(found_plots)
+    if len(found_plots) == 0:
+        exit_code('\n*** plots not found for seq: {}'.format(sequence))
+    expected_plots = expected_suffices(EXPECTED_PLOTS)
+    if len(expected_plots) == 0:
+        exit_code('no expected plots found - check filepath for expected plots file')
+    logging.debug('\nexpected_plots: {}\n'.format(expected_plots))
+    missing_plots = find_missing_plots(expected_plots, found_plots)
+    extra_plots = find_extra_plots(expected_plots, found_plots)
+    logging.info('\nmissing_plots: {}\n'.format(missing_plots))
+    logging.info('\nextra_plots: {}\n'.format(extra_plots))
+
 
 if __name__ == '__main__':
     # for testing, comment out the line below, uncomment for production use
