@@ -1,0 +1,19 @@
+# plots for weekly PowerPoint
+Up-to-SEQxxx-CO_02_TS1000.png
+Up-to-SEQxxx-CO_02_TS1500.png
+Up-to-SEQxxx-CO_02_TS2000.png
+Up-to-SEQxxx-CO_02_TS200.png
+Up-to-SEQxxx-CO_02_TS2500.png
+Up-to-SEQxxx-CO_02_TS400.png
+Up-to-SEQxxx-CO_02_TS600.png
+Up-to-SEQxxx-CO_02_TS800.png
+Up-to-SEQxxx-CO-Cube-IL2645.png
+Up-to-SEQxxx-CO-Cube-IL2676.png
+Up-to-SEQxxx-CO-Cube-IL2754.png
+Up-to-SEQxxx-CO-Cube-IL2787.png
+Up-to-SEQxxx-CO-Cube-IL2850.png
+Up-to-SEQxxx-CO-Cube-XL10000.png
+Up-to-SEQxxx-CO-Cube-XL14000.png
+Up-to-SEQxxx-CO-Cube-XL18000.png
+Up-to-SEQxxx-CO-Cube-XL22000.png
+Up-to-SEQxxx-CO-Cube-XL26000.png
