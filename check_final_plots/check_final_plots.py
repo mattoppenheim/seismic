@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('sequence', type=str, help='sequence to check for final plots')
 
 # minimum file size in bytes
-MIN_SIZE = 29000
+MIN_SIZE = 27000
 # for testing
 SEQ = 40
 
@@ -109,9 +109,12 @@ def found_plot_suffices(found_plots):
     found_plots_list = []
     for plot_path in found_plots:
         plot_suffix = os.path.basename(plot_path)
+        '''
         plot_suffix = plot_suffix.split('-')
         plot_suffix = '{}{}'.format('-','-'.join(plot_suffix[2:]))
         found_plots_list.append(plot_suffix)
+        '''
+        found_plots_list.append(plot_suffix[9:])
     logging.debug('\nfound_plots: {}\n'.format(found_plots_list))
     return found_plots_list
 
