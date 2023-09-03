@@ -25,8 +25,6 @@ SEQ = '3605'
 
 
 SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv'
-# for testing
-# SUBS_FILE = r'/home/amuobpproc05/Documents/matt/testing/substitutions_adjusted.csv'
 
 # column numbers for information in the substitutions.csv file. Starts at 0:
 SUBS_LINENAME_COLUMN = 1
@@ -69,7 +67,7 @@ class Subs:
                     if (int(sequence) not in range(first_seq, last_seq+1)):
                         continue
                 # make linename match the one in the p111
-                linename = line[SUBS_LINENAME_COLUMN][7:]
+                linename = line[SUBS_LINENAME_COLUMN][LINE_SLICE]
                 # columns start numbering from 0
                 fsp = line[SUBS_FSP_COLUMN]
                 lsp = line[SUBS_LSP_COLUMN]
