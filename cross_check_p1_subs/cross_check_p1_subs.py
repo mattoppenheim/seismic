@@ -46,6 +46,14 @@ SUBS_FILE = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv'
 # SUBS_FILE = r'/home/amuobpproc05/Documents/matt/testing/substitutions_adjusted.csv'
 
 
+# column numbers for information in the substitutions.csv file. Starts at 0:
+SUBS_LINENAME_COLUMN = 1
+SUBS_FSP_COLUMN = 3
+SUBS_LSP_COLUMN = 4
+SUBS_SEQ_COLUMN = 0
+
+
+
 P111_SUFFIX = r'.p111'
 
 
@@ -84,9 +92,9 @@ def check_missing(name, shot_list):
     shot_list_int = map(int, shot_list)
     missing = find_missing(list(shot_list_int))
     if missing:
-        logging.info('***missing shots in p111 {} data: {}'.format(name, missing))
+        logging.info('***missing shots in p111 {} data: {}\n'.format(name, missing))
     else:
-        logging.debug('no missing shots in the shot_list for {}'.format(name))
+        logging.debug('no missing shots in the shot_list for {}\n'.format(name))
 
 
 def compare_p1_s1_shots(p1_shots, s1_shots):
@@ -112,11 +120,10 @@ def compare_tuples(line_info_tuple, p1_tuple):
 def create_line_info_tuples(subs_filepath, first_seq=None, last_seq=None):
     ''' Create a list of named tupes from the substition file. '''
     line_info_list = []
-    logging.info('sequence range: {}'.format(range(first_seq, last_seq+1)))
     with open(subs_filepath, 'r') as subs:
         for line in subs:
             line = line.split(',')
-            sequence = line[0]
+            sequence = line[SUBS_SEQ_COLUMN]
             # lots of lines just containing ',' in the subs file
             if not sequence.isnumeric():
                 continue
@@ -125,9 +132,10 @@ def create_line_info_tuples(subs_filepath, first_seq=None, last_seq=None):
                 if (int(sequence) not in range(first_seq, last_seq+1)):
                     continue
             # make linename match the one in the p111
-            linename = line[1][7:]
-            fsp = line[4]
-            lsp = line[5]
+            linename = line[SUBS_LINENAME_COLUMN][7:]
+            # columns start numbering from 0
+            fsp = line[SUBS_FSP_COLUMN]
+            lsp = line[SUBS_LSP_COLUMN]
             line_info = Line_info(sequence, linename, fsp, lsp)
             line_info_list.append(line_info)
     return line_info_list

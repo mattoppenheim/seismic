@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 '''
 Cross check edits againt zero depth .csv files for a given sequence.
-Last update: 2023-06-30 Matthew Oppenheim.
+Last update: 2023-09-01 Matthew Oppenheim.
 
 '''
 
@@ -88,6 +88,15 @@ def first_last_seq(*args):
 
 def output_results(zero_list, edit_list, sequence):
     ''' Display results for comparing zero and edits files. '''
+    if not(zero_list) and not(edit_list):
+        logging.info('No zero depths and no edits')
+        return
+    if not(zero_list):
+        logging.info('No zero depths, edits: {}'.format(edit_list))
+        return
+    if not(edit_list):
+        logging.info('*** No edits, zero depths: {}'.format(zero_list))
+        return
     cross_check_zeros = cross_check_edit_zeros(zero_list, edit_list)
     if len(cross_check_zeros) == 0:
         logging.info('\nNo missing zero depths in edits for {}, zeros: {}\n'.format(sequence, zero_list))
@@ -97,7 +106,7 @@ def output_results(zero_list, edit_list, sequence):
     if len(cross_check_edits) == 0:
         logging.info('\nNo missing edits compared to zeros for {}, edits: {}\n'.format(sequence, edit_list))
     else:
-        logging.info('\n*** extra zeros: {}, zeros: {}\n'.format(cross_check_edits, zeros_list))
+        logging.info('\n*** extra zeros: {}, zeros: {}\n'.format(cross_check_edits, zero_list))
 
 
 def parse_edit(edit_line):
@@ -121,7 +130,7 @@ def read_edits(edits_filepath):
 
 
 def read_zeros(zeros_filepath):
-    ''' Return list of zeroe shots for <zeros_filepath>. '''
+    ''' Return list of zero shots for <zeros_filepath>. '''
     with open(zeros_filepath, 'r') as open_zeros:
         zeros_list = []
         open_zeros.readline()
