@@ -1,10 +1,29 @@
 #!/usr/bin/python3
 '''
+Use
+
+check_bad_shot_ranges <sequence(s)>
+
+e.g.
+
+check_bad_shot_ranges 3667
+
+or
+
+check_bad_shot_ranges 3667-3669
+
+If no sequence(s) are supplied, the script iterates through
+everything that is in the substitutions.csv file.
+
 Check that a line is still in spec when there are bad shots.
 Supply the bad shots as a list called:
+
     BAD_SHOT_LIST
+
 e.g.
+
 [1 ,2 ,3, 500]
+
 ranges can be supplied, e.g.
 
  [33, '50-60', '72-80']
@@ -19,7 +38,7 @@ The specs are supplied as tuples in the form:
 
 e.g. (9, 80) means 9 shots bad in an 80 shot range is illegal.
 
-Last edit: 2023_09_02 Matthew Oppenheim
+Last update: 2023_09_04 Matthew Oppenheim
 '''
 
 import argparse
@@ -35,13 +54,19 @@ import tools
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
 
-# BAD_SHOT_LIST = [100, 102, 103, 110]
 BAD_SHOT_LIST=[1405, 1417, 1427, 1449, 1505, 1523, 1537, 1591, 1601, 1629, 1653, 1677, 1685, 1695]
-# SPEC_TUPLES = [(2, 2), (3, 200)]
 
 # Location of edits directory
 EDITS_DIRECTORY = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/tables/edits/edits_linda'
 EDITS_FILENAME_SUFFIX = 'Hard_edits.csv'
+
+# spec for how many shots can be bad for an entire line
+# 7021 ENI 3D spec from Ref_03_AESI-M-BTP-01
+PERCENTAGE_PER_LINE = 5
+
+# spec for how many shots can be bad for the entire survey
+PERCENTAGE_SURVEY = 2
+
 
 # 7021 ENI 3D specs from Ref_03_AESI-M-BTP-01
 SPEC_TUPLES = [(6, 6), (8, 15), (12, 100)]
@@ -51,49 +76,58 @@ SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv
 # Tuple used to store line information from substitutions.csv file
 Line_info = namedtuple('Line_info', 'sequence linename fsp lsp')
 
-def check_good(illegal_bad, check_range, bad_shots):
-    ''' Checks if <illegal_bad> edits over <check_range> shots in <bad_shots> is in spec. '''
-    # default to fail
-    tests_pass = False
-    logging.info('checking illegal_bad: {} check_range: {}'.format(illegal_bad, check_range))
-    bad_shots.sort()
-    for edit in bad_shots:
-        test_range = range(edit, edit+check_range)
-        # find where the bad shots are in the range of shots we are testing over
-        edits_in_test_range = intersect(test_range, bad_shots)
-        num_edits = len(edits_in_test_range)
-        if num_edits < illegal_bad:
-            tests_pass = True
-        else:
-            logging.info('*** fail shot {}: edits: {}'.format(edit, num_edits))
-    return tests_pass
+
+def all_percentage_bad(total_shots, total_bad_shots):
+    ''' Check if the percentage bad for all lines checked exeeds the spec for the survey. '''
+    logging.debug('\ntotal_shots: {} total_bad_shots: {}'.format(total_shots, total_bad_shots))
+    percentage_bad = 100*total_bad_shots/total_shots
+    logging.info('percentage bad: {:.2f}'.format(percentage_bad))
+    if percentage_bad < PERCENTAGE_SURVEY:
+        logging.info('\nThe percentage of bad shots allowed per line ({}%) passed: {:.2f}'.format(PERCENTAGE_SURVEY,
+            percentage_bad))
+        return
+    logging.info('\n*** The percentage of bad shots allowed if this is the entire survey ({}%) failed: {:.2f}'.format(PERCENTAGE_SURVEY,
+        percentage_bad))
+    # return value to enable testing
+    return float('{:.2f}'.format(percentage_bad))
 
 
-def check_specs_single_sequence(bad_shots, spec_tuples_list):
-    ''' Check if <bad_shots> list is out of spec for the list of specs in spec_tuples_list. '''
-    bad_shots = expand_ranges(bad_shots)
-    bad_shots.sort()
-    logging.debug('total edits: {}'.format(len(bad_shots)))
-    logging.debug('checking for bad edits in sorted list:\n{}'.format(bad_shots))
-    for illegal_bad, check_range in spec_tuples_list:
-        test_passed = check_good(illegal_bad, check_range, bad_shots)
-        if test_passed:
-            logging.info('passed test')
-        else:
-            logging.info('*** failed test')
-
-
-def check_all_sequences(subs_tuples, spec_tuples):
+def all_sequences_spec_check(subs_tuples, spec_tuples):
     ''' Iterate through the sequences in <subs_tuples> '''
+    all_shots = 0
+    all_bad_shots = 0
     for subs_tuple in subs_tuples:
-        bad_shots = get_edits(subs_tuple.sequence)
+        sequence = subs_tuple.sequence
+        logging.info('\nChecking sequence: {}'.format(sequence))
+        bad_shots = read_edits_file(sequence)
+        if bad_shots is None:
+            logging.info('No bad shots for sequence: {}'.format(sequence))
+            continue
+        logging.debug('bad_shots: {}'.format(bad_shots))
+        # check the bad shots against the bad shots specs for a single line
+        single_sequence_spec_check(bad_shots, spec_tuples)
+        # check if % bad for entire line are in spec
+        line_shots = calc_line_shots(subs_tuple)
+        total_bad_shots = len(bad_shots)
+        line_percentage_bad(total_bad_shots, line_shots)
+        all_shots += line_shots
+        all_bad_shots += total_bad_shots
+    all_percentage_bad(all_shots, all_bad_shots)
+    # return values to enable testing
+    return all_shots, all_bad_shots
+
+
+def calc_line_shots(subs_tuple):
+    ''' Calculates how many shots were fired for a line. '''
+    fsp = int(subs_tuple.fsp)
+    lsp = int(subs_tuple.lsp)
+    return abs(fsp-lsp) + 1
 
 
 def expand_ranges(edits_list):
     ''' Expand shot ranges to a list of individual shots. '''
     shot_list = []
     for edit in edits_list:
-        logging.debug('edit: {}'.format(edit))
         edit = str(edit)
         shot_range = [int(x) for x in list(edit.split('-'))]
         shot_list += ([a for a in range(min(shot_range), max(shot_range)+1)])
@@ -109,23 +143,21 @@ def find_edits_filepath(sequence):
     return None
 
 
-def get_edits(sequence):
-    ''' Get bad shots from the edits file for <sequence>. '''
-    edits_filepath = find_edits_filepath(sequence)
-    if edits_filepath is None:
-        return None
-    edits_list = []
-    with open(edits_filepath, 'r') as edits_file:
-        edits_file.readline()
-        for line in edits_file:
-            new_edit = parse_edits_line(line)
-            edits_list.append(new_edit)
-    logging.debug('edits_list: {}'.format(edits_list))
-
-
 def intersect(a, b):
     ''' Return the intersection of two lists. '''
     return list(set(a) & set(b))
+
+
+def line_percentage_bad(num_bad_shots, line_shots):
+    ''' Check if the percentage of bad shots for a single line is in spec. '''
+    percentage_bad = 100*num_bad_shots/line_shots
+    logging.info('percentage bad: {:.2f}'.format(percentage_bad))
+    if percentage_bad < PERCENTAGE_PER_LINE:
+        logging.info('The percentage of bad shots allowed per line ({}%) passed: {:.2f}'.format(PERCENTAGE_PER_LINE,
+            percentage_bad))
+        return
+    logging.info('\n*** The percentage of bad shots allowed per line ({}%) failed: {:.2f}'.format(PERCENTAGE_PER_LINE,
+        percentage_bad))
 
 
 def parse_edits_line(edit_line):
@@ -135,13 +167,59 @@ def parse_edits_line(edit_line):
     return edit
 
 
+def read_edits_file(sequence):
+    ''' Get bad shots from the edits file for <sequence>. '''
+    edits_filepath = find_edits_filepath(sequence)
+    if edits_filepath is None:
+        return None
+    bad_shot_list = []
+    with open(edits_filepath, 'r') as edits_file:
+        edits_file.readline()
+        for line in edits_file:
+            new_edit = parse_edits_line(line)
+            bad_shot_list.append(new_edit)
+    return bad_shot_list
+
+
+def single_spec_check(spec_for_bad, range_to_check, bad_shots):
+    ''' Checks if <spec_for_bad> bad shots over <range_to_check> shots in <bad_shots> is in spec. '''
+    # default to fail
+    tests_pass = False
+    logging.info('checking for {} bad shots in {} shots'.format(spec_for_bad, range_to_check))
+    bad_shots.sort()
+    for bad_shot in bad_shots:
+        test_range = range(bad_shot, bad_shot+range_to_check)
+        # find where the bad shots are in the range of shots we are testing over
+        bad_shots_in_test_range = intersect(test_range, bad_shots)
+        num_bad_shots = len(bad_shots_in_test_range)
+        if num_bad_shots < spec_for_bad:
+            tests_pass = True
+        else:
+            logging.info('*** fail shot {}: bad_shots: {}'.format(bad_shot, num_bad_shots))
+    return tests_pass
+
+
+def single_sequence_spec_check(bad_shots, spec_tuples_list):
+    ''' Check if <bad_shots> list is out of spec for the list of specs in spec_tuples_list. '''
+    bad_shots = expand_ranges(bad_shots)
+    bad_shots.sort()
+    logging.debug('total edits: {}'.format(len(bad_shots)))
+    logging.debug('checking for bad edits in sorted list:\n{}'.format(bad_shots))
+    for illegal_bad, check_range in spec_tuples_list:
+        test_passed = single_spec_check(illegal_bad, check_range, bad_shots)
+        if test_passed:
+            logging.info('passed test')
+        else:
+            logging.info('*** failed test')
+
+
 def main(bad_shots, spec_tuples):
     # get list of (sequence, linename, fsp, lsp) from substitutions.csv
     # if first_seq, last_seq are None, this contains all sequences
     subs = Subs(sys.argv[1:], subs=SUBS_FILEPATH)
     subs_tuples = subs.get_line_info_tuples()
     logging.debug('subs tuples: {}'.format(subs_tuples))
-    check_all_sequences(subs_tuples, spec_tuples)
+    all_sequences_spec_check(subs_tuples, spec_tuples)
 
 
 if __name__ == '__main__':
