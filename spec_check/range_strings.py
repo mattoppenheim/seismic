@@ -14,7 +14,7 @@ Last update: 2023_06_09
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 # examples used for testing
 in_list = [25,7,9,8,6, 21,20, 3,2,1, 22,23, 50, 22, 22]

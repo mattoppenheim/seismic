@@ -51,7 +51,7 @@ import sys
 import tools
 
 
-logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 BAD_SHOT_LIST=[1405, 1417, 1427, 1449, 1505, 1523, 1537, 1591, 1601, 1629, 1653, 1677, 1685, 1695]
@@ -77,47 +77,27 @@ SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv
 Line_info = namedtuple('Line_info', 'sequence linename fsp lsp')
 
 
-def all_percentage_bad(total_shots, total_bad_shots):
-    ''' Check if the percentage bad for all lines checked exeeds the spec for the survey. '''
-    logging.debug('\ntotal_shots: {} total_bad_shots: {}'.format(total_shots, total_bad_shots))
-    percentage_bad = 100*total_bad_shots/total_shots
-    logging.info('percentage bad: {:.2f}'.format(percentage_bad))
+def check_line_spec(percentage_bad):
+    ''' Check percentage_bad against the spec for bad shots per line. '''
+    if percentage_bad < PERCENTAGE_PER_LINE:
+        logging.info('The percentage of bad shots allowed per line ({}%) passed: {:.2f}'.format(PERCENTAGE_PER_LINE,
+            percentage_bad))
+    else:
+        logging.info('\n*** The percentage of bad shots allowed per line ({}%) failed: {:.2f}'.format(PERCENTAGE_PER_LINE,
+        percentage_bad))
+
+
+def check_survey_spec(percentage_bad):
+    ''' Check percentage_bad against the spec for bad shots for the whole survey. '''
     if percentage_bad < PERCENTAGE_SURVEY:
         logging.info('\nThe percentage of bad shots allowed per line ({}%) passed: {:.2f}'.format(PERCENTAGE_SURVEY,
             percentage_bad))
-        return
-    logging.info('\n*** The percentage of bad shots allowed if this is the entire survey ({}%) failed: {:.2f}'.format(PERCENTAGE_SURVEY,
+    else:
+        logging.info('\n*** The percentage of bad shots allowed if this is the entire survey ({}%) failed: {:.2f}'.format(PERCENTAGE_SURVEY,
         percentage_bad))
-    # return value to enable testing
-    return float('{:.2f}'.format(percentage_bad))
 
 
-def all_sequences_spec_check(subs_tuples, spec_tuples):
-    ''' Iterate through the sequences in <subs_tuples> '''
-    all_shots = 0
-    all_bad_shots = 0
-    for subs_tuple in subs_tuples:
-        sequence = subs_tuple.sequence
-        logging.info('\nChecking sequence: {}'.format(sequence))
-        bad_shots = read_edits_file(sequence)
-        if bad_shots is None:
-            logging.info('No bad shots for sequence: {}'.format(sequence))
-            continue
-        logging.debug('bad_shots: {}'.format(bad_shots))
-        # check the bad shots against the bad shots specs for a single line
-        single_sequence_spec_check(bad_shots, spec_tuples)
-        # check if % bad for entire line are in spec
-        line_shots = calc_line_shots(subs_tuple)
-        total_bad_shots = len(bad_shots)
-        line_percentage_bad(total_bad_shots, line_shots)
-        all_shots += line_shots
-        all_bad_shots += total_bad_shots
-    all_percentage_bad(all_shots, all_bad_shots)
-    # return values to enable testing
-    return all_shots, all_bad_shots
-
-
-def calc_line_shots(subs_tuple):
+def total_line_shots(subs_tuple):
     ''' Calculates how many shots were fired for a line. '''
     fsp = int(subs_tuple.fsp)
     lsp = int(subs_tuple.lsp)
@@ -148,16 +128,13 @@ def intersect(a, b):
     return list(set(a) & set(b))
 
 
-def line_percentage_bad(num_bad_shots, line_shots):
-    ''' Check if the percentage of bad shots for a single line is in spec. '''
-    percentage_bad = 100*num_bad_shots/line_shots
-    logging.info('percentage bad: {:.2f}'.format(percentage_bad))
-    if percentage_bad < PERCENTAGE_PER_LINE:
-        logging.info('The percentage of bad shots allowed per line ({}%) passed: {:.2f}'.format(PERCENTAGE_PER_LINE,
-            percentage_bad))
-        return
-    logging.info('\n*** The percentage of bad shots allowed per line ({}%) failed: {:.2f}'.format(PERCENTAGE_PER_LINE,
-        percentage_bad))
+def percentage_bad(bad_shots, total_shots):
+    ''' Calculate the percentage of bad shots. '''
+    if total_shots == 0:
+        tools.exit_code('line with 0 shots and {} bad shots, not possible'.format(bad_shots))
+    percentage_bad = float('{:.2f}'.format(100*bad_shots/total_shots))
+    logging.debug('percentage bad: {:.2f}'.format(percentage_bad))
+    return percentage_bad
 
 
 def parse_edits_line(edit_line):
@@ -183,8 +160,8 @@ def read_edits_file(sequence):
 
 def single_spec_check(spec_for_bad, range_to_check, bad_shots):
     ''' Checks if <spec_for_bad> bad shots over <range_to_check> shots in <bad_shots> is in spec. '''
-    # default to fail
-    tests_pass = False
+    tests_pass = True
+    logging.debug('spec_for_bad: {} range_to_check: {} bad_shots: {}'.format(spec_for_bad, range_to_check, bad_shots))
     logging.info('checking for {} bad shots in {} shots'.format(spec_for_bad, range_to_check))
     bad_shots.sort()
     for bad_shot in bad_shots:
@@ -193,13 +170,41 @@ def single_spec_check(spec_for_bad, range_to_check, bad_shots):
         bad_shots_in_test_range = intersect(test_range, bad_shots)
         num_bad_shots = len(bad_shots_in_test_range)
         if num_bad_shots < spec_for_bad:
-            tests_pass = True
+            logging.debug('test passes at SP: {}'.format(bad_shot))
         else:
             logging.info('*** fail shot {}: bad_shots: {}'.format(bad_shot, num_bad_shots))
+            tests_pass = False
     return tests_pass
 
 
-def single_sequence_spec_check(bad_shots, spec_tuples_list):
+def spec_check_all_sequences(subs_tuples, spec_tuples):
+    ''' Iterate through the sequences in <subs_tuples> '''
+    all_shots = 0
+    all_bad_shots = 0
+    for subs_tuple in subs_tuples:
+        sequence = subs_tuple.sequence
+        logging.info('\nChecking sequence: {}'.format(sequence))
+        bad_shots = read_edits_file(sequence)
+        if bad_shots is None:
+            logging.info('No bad shots for sequence: {}'.format(sequence))
+            continue
+        logging.info('bad_shots: {}'.format(bad_shots))
+        # check the bad shots against the bad shots specs for a single line
+        spec_check_single_line(bad_shots, spec_tuples)
+        # check if % bad for entire line are in spec
+        line_shots = total_line_shots(subs_tuple)
+        line_bad_shots = len(bad_shots)
+        line_percentage_bad = percentage_bad(line_bad_shots, line_shots)
+        check_line_spec(line_percentage_bad)
+        all_shots += line_shots
+        all_bad_shots += line_bad_shots
+    percentage_all_bad = percentage_bad(all_bad_shots, all_shots)
+    check_survey_spec(percentage_all_bad)
+    # return values to enable testing
+    return all_shots, all_bad_shots
+
+
+def spec_check_single_line(bad_shots, spec_tuples_list):
     ''' Check if <bad_shots> list is out of spec for the list of specs in spec_tuples_list. '''
     bad_shots = expand_ranges(bad_shots)
     bad_shots.sort()
@@ -219,7 +224,7 @@ def main(bad_shots, spec_tuples):
     subs = Subs(sys.argv[1:], subs=SUBS_FILEPATH)
     subs_tuples = subs.get_line_info_tuples()
     logging.debug('subs tuples: {}'.format(subs_tuples))
-    all_sequences_spec_check(subs_tuples, spec_tuples)
+    spec_check_all_sequences(subs_tuples, spec_tuples)
 
 
 if __name__ == '__main__':

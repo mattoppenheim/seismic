@@ -15,7 +15,8 @@ import range_strings
 import sys
 import tools
 
-logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 # use a named tuple to store line information
 Line_info = namedtuple('Line_info', 'sequence linename fsp lsp')
@@ -26,7 +27,7 @@ SEQ = '3605'
 
 SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv'
 
-# column numbers for information in the substitutions.csv file. Starts at 0:
+# Column numbers for information in the substitutions.csv file. Starts at 0:
 SUBS_LINENAME_COLUMN = 1
 SUBS_FSP_COLUMN = 3
 SUBS_LSP_COLUMN = 4
