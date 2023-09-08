@@ -112,7 +112,7 @@ def compare_tuples(line_info_tuple, p1_tuple):
     ''' Compare the line info tuples. '''
 
     if line_info_tuple == p1_tuple:
-        logging.info('subs and p1 positions agree for seq: {} {}'.format(line_info_tuple.sequence, line_info_tuple))
+        logging.info('subs and p1 entries agree for seq: {} {}'.format(line_info_tuple.sequence, line_info_tuple))
     else:
         logging.info('\n*** error, disagreement for:\nsubs file: {}\np111 info: {}\n'.format(line_info_tuple, p1_tuple))
 
