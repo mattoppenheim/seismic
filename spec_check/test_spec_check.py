@@ -6,7 +6,7 @@ Run using pytest
 Last update: 2023_09_04 Matthew Oppenheim
 '''
 
-from check_bad_shot_ranges import *
+from spec_check import *
 from collections import namedtuple
 import logging
 import pytest
@@ -17,12 +17,12 @@ Line_info = namedtuple('Line_info', 'sequence linename fsp lsp')
 
 
 SPEC_TUPLE_1 = (6, 6)
-SPEC_TUPLE_1 = (3, 4)
 SPEC_TUPLE_2 = (8, 15)
 SPEC_TUPLE_3 =(12, 100)
 SHOTS_1 = [1,2,3,4,5,6,7,9,20]
+SHOTS_2 = [1,2,3,9,20]
+SHOTS_3 = [1,2,3,4,5,6,7,9,10,11,12,20]
 
-SUBS_TUPLE_1 = [Line_info(sequence='3667', linename='1185', fsp='1696', lsp='1401')]
 SUBS_TUPLE_1 = Line_info('3667', '1185', '1696', '1401')
 SUBS_TUPLE_2 = Line_info('3667', '1185', '1696', '1696')
 
@@ -54,9 +54,13 @@ def test_parse_edits_line():
     assert parse_edits_line('false;1482;ALL;ALL;ALL;Error;ALL;Gun no status;') == '1482'
 
 
-@pytest.mark.parametrize('spec_for_bad, range_to_check, bad_shots, expected', [(SPEC_TUPLE_1[0], SPEC_TUPLE_1[1],SHOTS_1, False),
+@pytest.mark.parametrize('spec_for_bad, range_to_check, bad_shots, expected',
+    [(SPEC_TUPLE_1[0], SPEC_TUPLE_1[1],SHOTS_1, False),
     (SPEC_TUPLE_2[0], SPEC_TUPLE_2[1],SHOTS_1, False),
-    (SPEC_TUPLE_3[0], SPEC_TUPLE_3[1],SHOTS_1, True)])
+    (SPEC_TUPLE_3[0], SPEC_TUPLE_3[1],SHOTS_1, True),
+    (SPEC_TUPLE_1[0], SPEC_TUPLE_1[1],SHOTS_2, True),
+    (SPEC_TUPLE_2[0], SPEC_TUPLE_2[1],SHOTS_2, True),
+    (SPEC_TUPLE_3[0], SPEC_TUPLE_3[1],SHOTS_3, False)])
 def test_single_spec_check(spec_for_bad, range_to_check, bad_shots, expected):
     logging.debug('spec_for_bad: {} range_to_check: {} bad_shots: {}'.format(spec_for_bad, range_to_check, bad_shots))
     assert single_spec_check(spec_for_bad, range_to_check, bad_shots) == expected
