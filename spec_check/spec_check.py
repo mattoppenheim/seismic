@@ -38,7 +38,7 @@ The specs are supplied as tuples in the form:
 
 e.g. (9, 80) means 9 shots bad in an 80 shot range is illegal.
 
-Last update: 2023_09_04 Matthew Oppenheim
+Last update: 2023_09_07 Matthew Oppenheim
 '''
 
 import argparse
@@ -53,8 +53,6 @@ import tools
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-
-BAD_SHOT_LIST=[1405, 1417, 1427, 1449, 1505, 1523, 1537, 1591, 1601, 1629, 1653, 1677, 1685, 1695]
 
 # Location of edits directory
 EDITS_DIRECTORY = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/tables/edits/edits_linda'
@@ -95,13 +93,6 @@ def check_survey_spec(percentage_bad):
     else:
         logging.info('\n*** The percentage of bad shots allowed if this is the entire survey ({}%) failed: {:.2f}'.format(PERCENTAGE_SURVEY,
         percentage_bad))
-
-
-def total_line_shots(subs_tuple):
-    ''' Calculates how many shots were fired for a line. '''
-    fsp = int(subs_tuple.fsp)
-    lsp = int(subs_tuple.lsp)
-    return abs(fsp-lsp) + 1
 
 
 def expand_ranges(edits_list):
@@ -218,7 +209,14 @@ def spec_check_single_line(bad_shots, spec_tuples_list):
             logging.info('*** failed test')
 
 
-def main(bad_shots, spec_tuples):
+def total_line_shots(subs_tuple):
+    ''' Calculates how many shots were fired for a line. '''
+    fsp = int(subs_tuple.fsp)
+    lsp = int(subs_tuple.lsp)
+    return abs(fsp-lsp) + 1
+
+
+def main(spec_tuples):
     # get list of (sequence, linename, fsp, lsp) from substitutions.csv
     # if first_seq, last_seq are None, this contains all sequences
     subs = Subs(sys.argv[1:], subs=SUBS_FILEPATH)
@@ -236,4 +234,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # uncomment the line below for testing
     # args = argparse.Namespace(sequence=SEQ)
-    main(BAD_SHOT_LIST, SPEC_TUPLES)
+    main(SPEC_TUPLES)
