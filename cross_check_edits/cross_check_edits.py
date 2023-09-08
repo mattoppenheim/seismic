@@ -99,12 +99,12 @@ def output_results(zero_list, edit_list, sequence):
         return
     cross_check_zeros = cross_check_edit_zeros(zero_list, edit_list)
     if len(cross_check_zeros) == 0:
-        logging.info('\nNo missing zero depths in edits for {}, zeros: {}\n'.format(sequence, zero_list))
+        logging.info('No missing zero depths in edits for {}, zeros: {}\n'.format(sequence, zero_list))
     else:
         logging.info('\n*** extra edits: {}, edits: {}\n'.format(cross_check_zeros, edit_list))
     cross_check_edits = cross_check_zeros_edits(zero_list, edit_list)
     if len(cross_check_edits) == 0:
-        logging.info('\nNo missing edits compared to zeros for {}, edits: {}\n'.format(sequence, edit_list))
+        logging.info('No missing edits compared to zeros for {}, edits: {}\n'.format(sequence, edit_list))
     else:
         logging.info('\n*** extra zeros: {}, zeros: {}\n'.format(cross_check_edits, zero_list))
 
@@ -154,14 +154,14 @@ def process_sequences(first_seq, last_seq, zeros_dir, edits_dir):
     for sequence in range(first_seq, last_seq+1):
         edits_filename = '{}{}'.format(sequence, EDITS_SUFFIX)
         zero_filename = '{}{}'.format(sequence, ZERO_SUFFIX)
-        logging.info('\nsequence: {}'.format(sequence))
+        logging.info('\n+++ sequence: {}\n'.format(sequence))
         # get a list of edits for <sequence>
         edits_path = edits_filepath(edits_dir, edits_filename)
         if edits_path is None:
             edit_list = []
         else:
             edit_list = read_edits(edits_path)
-        logging.debug('\nedits for {}: {}\n'.format(sequence, edit_list))
+        logging.info('edits for {}: {}\n'.format(sequence, edit_list))
 
         # get a list of zero depth shots for <sequence>
         zeros_path = zeros_filepath(zeros_dir, zero_filename)
@@ -169,7 +169,7 @@ def process_sequences(first_seq, last_seq, zeros_dir, edits_dir):
             zero_list = []
         else:
             zero_list = read_zeros(zeros_path)
-        logging.debug('\nzeros for {}: {}\n'.format(sequence, zero_list))
+        logging.info('zeros for {}: {}\n'.format(sequence, zero_list))
         output_results(zero_list, edit_list, sequence)
 
 
@@ -184,7 +184,7 @@ def main(zeros_dir, edits_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('sequence', type=str, default=SEQ, help='sequence to cross check edits against zero depths')
+    parser.add_argument('sequence', type=str, default=SEQ, help='sequence(s) to cross check edits against zero depths')
     # comment out the following line for testing
     args = parser.parse_args()
     # uncomment the line below for testing
