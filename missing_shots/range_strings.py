@@ -118,7 +118,7 @@ def reverse_ranges(ranges):
             subrange = subrange[-1::-1]
             single_range = '-'.join(subrange)
         reversed.append(single_range)
-    return ','.join(reversed)
+    return ', '.join(reversed)
 
 
 if __name__ == '__main__':

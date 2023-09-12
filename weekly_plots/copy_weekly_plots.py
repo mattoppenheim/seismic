@@ -16,7 +16,8 @@ Copies and renames files from the source directories to the target directories.
 Files are renamed to be the same as in the file xxxx_PLOTS_LIST.md files.
 
 Matthew Oppenheim.
-last update: 2023_06_10
+Updating for AMU
+last update: 2023_08_16
 '''
 
 
@@ -26,19 +27,25 @@ from pathlib import Path
 import logging
 import sys
 
-#logging.basicConfig(level=logging.DEBUG, format='%(message)s')
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+#logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 # directory paths of the where to save the plots
-SOURCE_DIR = '/nfs/awa-data01/Reveal_Projects/3163_CGG_NVG_3D_2023/SuperVision/Weekly'
-COFF_TARGET_DIR = '/nfs/awa-data01/Reveal_Projects/3163_CGG_NVG_3D_2023/SuperVision/Weekly/plots_for_weekly/COFF'
-FOLD_TARGET_DIR = '/nfs/awa-data01/Reveal_Projects/3163_CGG_NVG_3D_2023/SuperVision/Weekly/plots_for_weekly/FOLD'
-PLOTS_TARGET_DIR = '/nfs/awa-data01/Reveal_Projects/3163_CGG_NVG_3D_2023/SuperVision/Weekly/plots_for_weekly'
+SOURCE_DIR = '/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/SuperVision/Weekly/'
+SOURCE_SUBDIR_PREFIX='Up-to-SEQ'
+COFF_TARGET_DIR = '/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/SuperVision/Weekly/Cubes'
+FOLD_TARGET_DIR = '/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/SuperVision/Weekly/Fold_Maps'
+PLOTS_TARGET_DIR = '/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/SuperVision/Weekly/plots_for_powerpoint'
 
 # files containing the list of plots that we want to copy
-COFF_PLOTS_LIST = 'coff_plots_list.md'
-FOLD_PLOTS_LIST = 'fold_plots_list.md'
-ATTRIBUTE_PLOTS_LIST = 'attribute_plots_list.md'
+
+COFF_SOURCE='Cubes'
+FOLD_SOURCE='Fold_Maps'
+AREAL_SOURCE='ArealMaps'
+
+COFF_PLOTS = 'coff_plots_amu.md'
+FOLD_PLOTS = 'fold_plots_amu.md'
+AREAL_PLOTS = 'areal_plots_amu.md'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('sequence', type=str, help='sequence to copy plots from for the weekly report')
@@ -48,13 +55,18 @@ def copy_plots(paths_dictionary):
     ''' Copy from <source> to <target> for <source>:<target> in paths_dictionary. '''
     for source in paths_dictionary.keys():
         copy_command = 'cp {} {}'.format(source, paths_dictionary[source])
+        logging.debug('\n*** {}\n'.format(copy_command))
+        # comment out the following command during testing
         os.system(copy_command)
 
 
 def erase_old_png(directory_path):
     ''' Delete all .png files in directory_path. '''
     logging.info('deleting png files from the target directory before copying in new ones')
+    logging.info('target directory: {}'.format(directory_path))
     permission_to_proceed('\n*** all right to delete old plots from the target weekly_plots directory?\n')
+    if not os.path.exists(directory_path):
+        exit_code('target directory does not exist: {}'.format(directory_path))
     for filename in os.listdir(directory_path):
         filepath = os.path.join(directory_path, filename)
         if filepath.endswith('.png'):
@@ -84,6 +96,12 @@ def find_extra_plots(source_plot_dir_path, plotslist):
     return extra_plots
 
 
+def oldest_directory(dir_path):
+    ''' Find the oldest sub directory in <dir_path>. '''
+    sub_directories = [dir for dir in os.listdir(dir_path) if os.path.isdir(dir)]
+    return max(sub_directories, key=os.path.getmtime)
+
+
 def paths_dictionary(plots_to_copy, source_directory, target_directory, sequence):
     ''' Create a dictionary <source_plot_path>, <target_plot_path>. '''
     plots_dict = {}
@@ -109,6 +127,7 @@ def plots_to_find(weekly_plots_list_filepath, sequence):
     plotlist = []
     if not os.path.isfile(weekly_plots_list_filepath):
         exit_code('weekly plots list not found: {}'.format(weekly_plots_list_filepath))
+    # want plots from the newest subdirectory
     logging.info('\nlooking for plots to copy in: {}'.format(weekly_plots_list_filepath))
     with open(weekly_plots_list_filepath, 'r') as plot_names:
         next(plot_names)
@@ -136,7 +155,8 @@ def rename_plot(plotname, sequence):
 def source_directory_path(sequence, plot_sub_directory):
     ''' Find the path to where we copy plots from. '''
     sequence = sequence.zfill(3)
-    source_path = os.path.join(SOURCE_DIR, sequence, plot_sub_directory)
+    seq_subdir = '{}{}'.format(SOURCE_SUBDIR_PREFIX,sequence)
+    source_path = os.path.join(SOURCE_DIR, plot_sub_directory, seq_subdir)
     if not os.path.exists(source_path):
         exit_code('plots directory: {} not found'.format(source_path))
     return source_path
@@ -176,14 +196,14 @@ def copy_weekly_plots(sequence, plots_sub_directory, plots_list):
 def main(args):
     sequence = args.sequence.__str__()
     logging.info('\nseq {}'.format(sequence))
-    copy_weekly_plots(sequence, '', ATTRIBUTE_PLOTS_LIST)
-    copy_weekly_plots(sequence, 'COFF', COFF_PLOTS_LIST)
-    copy_weekly_plots(sequence, 'FOLD', FOLD_PLOTS_LIST)
+    copy_weekly_plots(sequence, AREAL_SOURCE, AREAL_PLOTS)
+    copy_weekly_plots(sequence, COFF_SOURCE, COFF_PLOTS)
+    copy_weekly_plots(sequence, FOLD_SOURCE, FOLD_PLOTS)
 
 
 if __name__ == '__main__':
     # comment out the following line for testing
     args = parser.parse_args()
     # uncomment the line below for testing
-    # args = argparse.Namespace(sequence=7)
+    # args = argparse.Namespace(sequence=37)
     main(args)

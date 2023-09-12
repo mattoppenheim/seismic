@@ -25,13 +25,19 @@ except ModuleNotFoundError as e:
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 # default sequence value used if one is not supplied
-SEQ = '47'
+SEQ = '17'
 
 # base directory for folders containing shots
-DROPBOX1_DIR = r'/nfs/awa-data01/dropbox1/dropobp/'
+DROPBOX1_SHOTS = r'/nfs/dropbox01/dropobp/'
 
-# Directory used for re-export
-DROPBOX2_DIR = r'/nfs/awa-data02/dropbox2/dropobp/'
+# base directory for folders containing re-exported shots
+DROPBOX2_SHOTS = r'/nfs/dropbox02/dropobp/'
+
+# base directory for folders containing nfh
+DROPBOX1_NFH = r'/nfs/dropbox01/dropobp-nfh/'
+
+# base directory for folders containing re-exported nfh
+DROPBOX2_NFH = r'/nfs/dropbox02/dropobp-nfh/'
 
 
 class MissingShots():
@@ -45,9 +51,9 @@ class MissingShots():
         ''' Display information about duplicated shots. '''
         duplicates = find_duplicates(shots)
         if len(duplicates) == 0:
-            logging.info('no duplicates found')
+            logging.info('+++ no duplicates found')
         else:
-            logging.info('duplicates: {}'.format(get_ranges(find_duplicates(shots))))
+            logging.info('+++duplicates: {}'.format(get_ranges(find_duplicates(shots))))
 
 
     def display_missing(self, missing):
@@ -81,7 +87,7 @@ class MissingShots():
     def drop_dir_path(self, sequence, dropbox_dir):
         drop_dir_path = os.path.join(dropbox_dir, sequence)
         if not os.path.exists(drop_dir_path):
-            self.exit_code('cannot find directory: {}'.format(drop_dir_path))
+            logging.info('cannot find directory: {}'.format(drop_dir_path))
         return os.path.join(dropbox_dir, sequence)
 
 
@@ -98,7 +104,8 @@ class MissingShots():
         try:
             os.chdir(basepath)
         except FileNotFoundError as e:
-            self.exit_code('The directory path is not found: {}'.format(basepath))
+            logging.info('directory path is not found: {}'.format(basepath))
+            return None
         filenames = list(filter(os.path.isfile, os.listdir(basepath)))
         filenames.sort(key=lambda x: os.path.getmtime(x))
         return filenames
@@ -152,8 +159,12 @@ class MissingShots():
         sequence = args.sequence.__str__()
         logging.info('\nseq {}'.format(sequence))
         directory_path = self.drop_dir_path(sequence, directory_path)
+        if not directory_path:
+            return
         logging.info('directory: {}'.format(directory_path))
         files = self.get_filenames(directory_path)
+        if not files:
+           return
         self.shots = self.shot_list(files)
         self.incrementing = self.is_inc(self.shots)
         self.sorted_shots = self.sort_shots(self.shots)
@@ -168,18 +179,18 @@ def sort_list(shot_list, is_incrementing):
         shot_list.sort(reverse=True)
     return shot_list
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('sequence', type=str, default=SEQ, help='sequence to find missing shots')
-    # comment out the following line for testing
-    args = parser.parse_args()
-    # uncomment the line below for testing
-    # args = argparse.Namespace(sequence=SEQ)
-    dropped1 = MissingShots(DROPBOX1_DIR, args)
-    dropped2 = MissingShots(DROPBOX2_DIR, args)
-    drop1_incrementing = dropped1.incrementing
-    drop2_incrementing = dropped2.incrementing
+def main(dropbox1, dropbox2, args):
+    logging.info('\nlooking in: {} {}'.format(dropbox1, dropbox2))
+    dropped1 = MissingShots(dropbox1, args)
+    dropped2 = MissingShots(dropbox2, args)
+    try:
+        drop1_incrementing = dropped1.incrementing
+    except AttributeError:
+        return
+    try:
+        drop2_incrementing = dropped2.incrementing
+    except AttributeError:
+        return
     drop1_shots = dropped1.shots
     drop2_shots = dropped2.shots
     # I don't know why the class variables drop1_shots and drop2_shots are
@@ -192,3 +203,13 @@ if __name__ == '__main__':
     logging.info('\nCombined shots for dropbox1 and dropbox2')
     dropped1.display_shot_info(sorted_all_shots)
 
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('sequence', type=str, default=SEQ, help='sequence to find missing shots')
+    # comment out the following line for testing
+    args = parser.parse_args()
+    # uncomment the line below for testing
+    # args = argparse.Namespace(sequence=SEQ)
+    main(DROPBOX1_SHOTS, DROPBOX2_SHOTS, args)
+    main(DROPBOX1_NFH, DROPBOX2_NFH, args)
