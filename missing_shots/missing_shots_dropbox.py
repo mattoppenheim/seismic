@@ -47,13 +47,13 @@ class MissingShots():
         self.main(directory_path, *args)
 
 
-    def display_duplicates(self, shots):
+    def display_duplicates(self, duplicates):
         ''' Display information about duplicated shots. '''
-        duplicates = find_duplicates(shots)
         if len(duplicates) == 0:
             logging.info('+++ no duplicates found')
         else:
-            logging.info('+++duplicates: {}'.format(get_ranges(find_duplicates(shots))))
+            logging.info('+++duplicates: {}'.format(get_ranges(duplicates)))
+        return duplicates
 
 
     def display_missing(self, missing):
@@ -81,7 +81,8 @@ class MissingShots():
         self.display_missing(missing)
         number_expected = abs(shots[-1] - shots[0]) + 1
         logging.info('number expected files: {}'.format(number_expected))
-        self.display_duplicates(shots)
+        duplicates = find_duplicates(shots)
+        self.display_duplicates(duplicates)
 
 
     def drop_dir_path(self, sequence, dropbox_dir):
@@ -206,7 +207,7 @@ def main(dropbox1, dropbox2, args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('sequence', type=str, default=SEQ, help='sequence to find missing shots')
+    parser.add_argument('sequence', type=str, nargs='?', default=SEQ, help='sequence to find missing shots')
     # comment out the following line for testing
     args = parser.parse_args()
     # uncomment the line below for testing

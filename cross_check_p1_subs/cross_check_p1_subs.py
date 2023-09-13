@@ -26,7 +26,8 @@ from pathlib import Path
 from range_strings import find_missing, get_ranges
 import sys
 
-logging.basicConfig(level=logging.debug, format='%(message)s')
+logging.basicConfig(level=logging.info, format='%(message)s')
+# logging.getLogger().setLevel('DEBUG')
 
 # use a named tuple to store line information
 Line_info = namedtuple('Line_info', 'sequence linename fsp lsp')
@@ -39,8 +40,8 @@ P1_LINE_ID = r'P1,'
 S1_LINE_ID = r'S1,'
 VESSEL_ID = r',AMU,'
 
-P111_DIR = r'/nfs/dropbox01/dropnav/7021/P111_NOAR'
-SUBS_FILE = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv'
+P111_DIR = r'/nfs/dropbox01/dropnav/7021/P111_REG'
+SUBS_FILE = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/substitutions.csv'
 # for testing
 # P111_DIR = r'/home/amuobpproc05/Documents/matt/testing/p111_test'
 # SUBS_FILE = r'/home/amuobpproc05/Documents/matt/testing/substitutions_adjusted.csv'
@@ -48,8 +49,8 @@ SUBS_FILE = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv'
 
 # column numbers for information in the substitutions.csv file. Starts at 0:
 SUBS_LINENAME_COLUMN = 1
-SUBS_FSP_COLUMN = 3
-SUBS_LSP_COLUMN = 4
+SUBS_FSP_COLUMN = 7
+SUBS_LSP_COLUMN = 8
 SUBS_SEQ_COLUMN = 0
 
 
@@ -196,16 +197,18 @@ def p1_info(p1_path):
                 split_line = line.split(',')
                 p1_shots.append(split_line[4])
                 p1_linename = split_line[2]
-    logging.debug(p1_shots)
+    # logging.debug(p1_shots)
     return p1_shots, p1_linename
 
 
 def p111_filepath(sequence):
     ''' Find the filepath for the P111 for <sequence>. '''
     for filename in os.listdir(P111_DIR):
-        if filename.split('.')[0] == sequence:
+        found_seq = filename.split('.')[0]
+        if found_seq == sequence.zfill(4):
             logging.debug('found p111: {} for seq: {}'.format(filename, sequence))
             return os.path.join(P111_DIR, filename)
+    logging.info('no p111 file found for seq: {} in: {}'.format(sequence, P111_DIR))
 
 
 def s1_info(p1_path):
@@ -231,6 +234,7 @@ def verify_path(path):
 
 def main():
     banner()
+    verify_path(P111_DIR)
     verify_path(SUBS_FILE)
     first_seq, last_seq = first_last_seq(sys.argv[1:])
     logging.info('Looking for seq {} to {}'.format(first_seq, last_seq))
