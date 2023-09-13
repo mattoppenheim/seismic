@@ -1,19 +1,20 @@
-check_bad_shot_range.py
+spec_check.py
 
 Tests edits files or a list of bad shots to check if they are in spec.
 Checks against specs that are defined in tuples.
+Get the specs from the job book for each project.
 
 # check edits files
 
-check_bad_shot_ranges <sequence(s)>
+spec_check <sequence(s)>
 
 e.g.
 
-check_bad_shot_ranges 3667
+spec_check 3667
 
 or
 
-check_bad_shot_ranges 3667-3669
+spec_check 3667-3669
 
 If no sequence(s) are supplied, the script iterates through
 everything that is in the substitutions.csv file.
@@ -45,9 +46,18 @@ The specs are supplied as tuples in the form:
 
 e.g. (9, 80) means 9 shots bad in an 80 shot range is illegal.
 
+There are often two further specs, the % of each line that can be bad and the %
+of all shots for the entire survey.
+
+Adjust the two global variables accordingly:
+
+PERCENTAGE_PER_LINE
+
+PERCENTAGE_SURVEY
+
 # tests
 
-tests are in tests_check_bad_shot_range
+tests are in tests_spec_check
 
 Use pytest to run these
 
