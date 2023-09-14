@@ -1,18 +1,20 @@
 #!/usr/bin/python3
 
 '''
-Create ENI format edits using CHANNEL_NUM
-Input: Reveal edits.csv file
+Create ENI format edit files
+Input: Reveal format .csv edit file
 Output: ENI format file
 example Reveal edit line:
 shot_1, shot_2, str_chan_1, str_chan_2, str_1, str_2
 12071,12071,699,701,3,3
 
-eni format:
+eni format edit line (text, shots, channels):
 
-....TDELETE...TRACE_NUM........12071.........2297:2299
+    TDELETE   TRACE_NUM        12071         2297:2299
 
-Last update 2023_09_13 Matthew Oppenheim
+_Hard_shot_edits.csv files are different. They only have shot_1, shot_2 information.
+
+Last update 2023_09_14 Matthew Oppenheim
 '''
 
 import logging
@@ -22,8 +24,8 @@ from range_strings import find_missing, get_ranges
 import sys
 from tools import exit_code, first_last_seq, verify_path
 
-# logging.basicConfig(level=logging.debug, format='%(message)s')
-logging.getLogger().setLevel('DEBUG')
+logging.basicConfig(level=logging.debug, format='%(message)s')
+#logging.getLogger().setLevel('DEBUG')
 
 
 class EniEdits:
@@ -56,6 +58,8 @@ class EniEdits:
     ALL_FLAG = 9999
     # channels per streamer, to replace '9999'
     MAX_CHAN = 799
+    # number streamers, for when shot edit files need information adding
+    MAX_STREAMER = 6
 
     def __init__(self, sequence, reveal_suffix, eni_suffix, eni_output_dir):
         self.verify_paths()
@@ -69,6 +73,15 @@ class EniEdits:
         return (int(streamer)-1)*self.CHANNELS_PER_STREAMER + int(channel)
 
 
+    def add_chans_streamer(self, split_reveal_edit):
+        ''' Add channel and streamer entry to a split reveal edits entry. '''
+        logging.debug('split_reveal_edit: {}'.format(split_reveal_edit))
+        chans_streamer = [1, self.MAX_CHAN, 1, self.MAX_STREAMER]
+        split_reveal_edit.extend(chans_streamer)
+        logging.debug('split_reveal_edit: {}'.format(split_reveal_edit))
+        return split_reveal_edit
+
+
     def add_edits(self, reveal_edits_filepath, eni_edits_filepath):
         ''' Parse reveal edits to eni format and write to eni_edits_filepath. '''
         with open(reveal_edits_filepath, 'r') as edits:
@@ -78,6 +91,14 @@ class EniEdits:
                 eni_shot_range, eni_chan_range =  self.parse_reveal_edit(line)
                 eni_edit_line = self.format_eni_line(eni_shot_range, eni_chan_range)
                 self.writeline(eni_edits_filepath, eni_edit_line)
+
+
+    def all_flag(self,channel):
+        ''' If channel is the ALL_FLAG for a bad shot, return the maximum channel in the streamer. '''
+        if int(channel) == int(self.ALL_FLAG):
+            logging.debug('\n*** all flag: {}'.format(channel))
+            return self.MAX_CHAN
+        return channel
 
 
     def calc_eni_chan_range(self, reveal_chan_range, reveal_streamer):
@@ -95,13 +116,6 @@ class EniEdits:
     def channel_num(self,channel, streamer):
         ''' Return absolute channel number. '''
         return (streamer-1)*CHANNELS_PER_STREAMER + channel
-
-
-    def check_all_flag(self,channel):
-        ''' If channel is the ALL_FLAG for a bad shot, return the maximum channel in the streamer. '''
-        if channel == self.ALL_FLAG:
-            return self.MAX_CHAN
-        return channel
 
 
     def comment_1(self, line_ident):
@@ -167,19 +181,26 @@ class EniEdits:
         # see comments at top for an example input and output
         reveal_edit = reveal_edit.strip()
         logging.debug('\nreveal_edit: {}'.format(reveal_edit))
-        split_line = reveal_edit.strip().split(',')
-        shot_1 = split_line[self.EDITS_SHOT_1]
-        shot_2 = split_line[self.EDITS_SHOT_2]
+        split_reveal_edit = reveal_edit.strip().split(',')
+        logging.debug('split_reveal_edit: {}'.format(split_reveal_edit))
+        shot_1 = split_reveal_edit[self.EDITS_SHOT_1]
+        shot_2 = split_reveal_edit[self.EDITS_SHOT_2]
         if shot_1 == shot_2:
             eni_shot_range = '{}'.format(shot_1)
         else:
             eni_shot_range = '{}:{}'.format(shot_1, shot_2)
-        chan_1 = split_line[self.EDITS_TRACE_1]
-        chan_2 = split_line[self.EDITS_TRACE_2]
-        chan_1 = self.check_all_flag(chan_1)
-        chan_2 = self.check_all_flag(chan_2)
-        str_1 = split_line[self.EDITS_STR_1]
-        str_2 = split_line[self.EDITS_STR_2]
+        # Hard_shot_edits only have shot information, need to fake the rest
+        try:
+            chan_1 = split_reveal_edit[self.EDITS_TRACE_1]
+        except IndexError:
+            logging.debug('faking channels and streamer entries')
+            split_reveal_edit = self.add_chans_streamer(split_reveal_edit)
+            chan_1 = split_reveal_edit[self.EDITS_TRACE_1]
+        chan_2 = split_reveal_edit[self.EDITS_TRACE_2]
+        chan_1 = self.all_flag(chan_1)
+        chan_2 = self.all_flag(chan_2)
+        str_1 = split_reveal_edit[self.EDITS_STR_1]
+        str_2 = split_reveal_edit[self.EDITS_STR_2]
         abs_chan_1 = self.abs_chan_num(chan_1, str_1)
         abs_chan_2 = self.abs_chan_num(chan_2, str_2)
         if abs_chan_1 == abs_chan_2:
