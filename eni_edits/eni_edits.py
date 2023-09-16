@@ -56,16 +56,14 @@ class EniEdits:
 
     # if a reveal channel number is '9999' this means all channels are bad
     ALL_FLAG = 9999
-    # channels per streamer, to replace '9999'
-    MAX_CHAN = 799
     # number streamers, for when shot edit files need information adding
     MAX_STREAMER = 6
 
-    def __init__(self, sequence, reveal_suffix, eni_suffix, eni_output_dir):
+    def __init__(self, reveal_suffix, eni_suffix, eni_output_dir):
         self.verify_paths()
         self.reveal_suffix = reveal_suffix
         self.eni_suffix = eni_suffix
-        self.process_single_seq(sequence, eni_output_dir)
+        self.eni_output_dir = eni_output_dir
 
 
     def abs_chan_num(self, channel, streamer):
@@ -76,7 +74,7 @@ class EniEdits:
     def add_chans_streamer(self, split_reveal_edit):
         ''' Add channel and streamer entry to a split reveal edits entry. '''
         logging.debug('split_reveal_edit: {}'.format(split_reveal_edit))
-        chans_streamer = [1, self.MAX_CHAN, 1, self.MAX_STREAMER]
+        chans_streamer = [1, self.CHANNELS_PER_STREAMER, 1, self.MAX_STREAMER]
         split_reveal_edit.extend(chans_streamer)
         logging.debug('split_reveal_edit: {}'.format(split_reveal_edit))
         return split_reveal_edit
@@ -97,7 +95,7 @@ class EniEdits:
         ''' If channel is the ALL_FLAG for a bad shot, return the maximum channel in the streamer. '''
         if int(channel) == int(self.ALL_FLAG):
             logging.debug('\n*** all flag: {}'.format(channel))
-            return self.MAX_CHAN
+            return self.CHANNELS_PER_STREAMER
         return channel
 
 
@@ -211,11 +209,21 @@ class EniEdits:
         return eni_shot_range, eni_chan_range
 
 
-    def process_single_seq(self, seq, eni_output_dir):
+    def process_all_sequences(self, sequences):
+        ''' Process all the sequences. '''
+        # get first and last sequence from input sequence string e.g. '10-20'
+        first_seq, last_seq = first_last_seq(sys.argv[1:])
+        logging.info('Looking for seq {} to {}'.format(first_seq, last_seq))
+        for seq in range(first_seq, last_seq+1):
+            self.process_single_seq(str(seq).zfill(3))
+        logging.info('completed normally\n')
+
+
+    def process_single_seq(self, seq):
         ''' Process a single sequence. '''
         seq_line_ident = self.line_ident(seq)
         reveal_edits_filepath = self.reveal_edits_path(seq, self.reveal_suffix)
-        out_filepath = self.output_filepath(seq, seq_line_ident, eni_output_dir)
+        out_filepath = self.output_filepath(seq, seq_line_ident, self.eni_output_dir)
         self.initialise_file(out_filepath)
         self.write_header(seq_line_ident, out_filepath)
         self.add_edits(reveal_edits_filepath, out_filepath)
