@@ -1,5 +1,4 @@
-# copy_weekly_plots path:
-/nfs/awa-data01/Reveal_Projects/3163_CGG_NVG_3D_2023/Scripts/copy_weekly_plots/copy_weekly_plots.py
+# copy_weekly_plots
 
 Copies and renames .png files from:
 /nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/SuperVision/Weekly/plots_for_powerpoint
@@ -41,7 +40,7 @@ script location:
 renamed plots go to:
 /nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/SuperVision/Weekly/plots_for_powerpoint
 
-manually copy the entire directory plots_for_powerpoint to:
+manually copy the entire directory of plots_for_powerpoint to:
 S:\Seismic\Jobs\7021-AMU-VES-Eni-Hewett UK CC Hybrid NOAR 3D\OBP\004_Weekly_Outputs
 
 Open a template from the AMU_templates directory and the new plots should replace the old ones.
@@ -50,10 +49,10 @@ The S: drive folder must be a trusted folder for PowerPoint on your PC.
 The plots are all renamed - the sequence number is replaced with 'xxx'. This
 allows the plot names to be linked in the weekly report PowerPoints.
 
-The existing plots in the plots_for_weekly folder are deleted. You need to
-explicitly say 'y' to do this. There may be a scenario when you don't want to
-delete the previous week's plots from the target folder. I figure it's safer to
-have a check before deleting data.
+The existing plots in the plots_for_weekly folder are deleted when you run the
+script. You need to explicitly say 'y' to do this. There may be a scenario when
+you don't want to delete the previous week's plots from the target folder. I
+figure it's safer to have a check before deleting data.
 
 There are three sets of data to copy, one for each of the three PowerPoints we
 produce.
