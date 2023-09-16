@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-''' Move shot files using a shot list
+''' Rename duplicate files.
 June 2023 Matt Oppenheim
 NOT TESTED - DO NOT USE
 '''
