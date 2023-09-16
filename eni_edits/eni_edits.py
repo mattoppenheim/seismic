@@ -227,7 +227,7 @@ class EniEdits:
         self.initialise_file(out_filepath)
         self.write_header(seq_line_ident, out_filepath)
         self.add_edits(reveal_edits_filepath, out_filepath)
-        logging.info('created edits file for seq: {}'.format(seq))
+        logging.info('created edits file for seq: {} ending {}'.format(seq, self.eni_suffix))
 
 
     def reveal_edits_path(self, seq, reveal_file_suffix, edits_dir=REVEAL_EDITS_DIR):

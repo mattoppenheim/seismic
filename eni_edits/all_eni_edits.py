@@ -21,23 +21,23 @@ logging.getLogger().setLevel('INFO')
 
 HARD_REVEAL_EDITS_SUFFIX = '_Hard_edits.csv'
 HARD_ENI_EDITS_SUFFIX = '_BADTR_HARD_EDIT'
-HARD_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/eni_hard_edits'
+HARD_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 
 HARD_SHOT_REVEAL_EDITS_SUFFIX = '_Hard_shot_edits.csv'
 HARD_SHOT_ENI_EDITS_SUFFIX = '_BADTR_NFH_FFS_EDIT'
-HARD_SHOT_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/eni_nfh_ffs_edits'
+HARD_SHOT_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 
 RECEIVER_REVEAL_EDITS_SUFFIX = '_Rec_Depth_edits.csv'
 RECEIVER_ENI_EDITS_SUFFIX = '_BADTR_RECEIVER_DEPTH_EDIT'
-RECEIVER_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/eni_receiver_depth_edits'
+RECEIVER_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 
 SOURCE_REVEAL_EDITS_SUFFIX = '-Source-Depth-Edits-9999.csv'
 SOURCE_ENI_EDITS_SUFFIX = '_BADTR_SOURCE_DEPTH_EDIT'
-SOURCE_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/eni_source_depth_edits'
+SOURCE_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 
 SOFT_REVEAL_EDITS_SUFFIX = '_Soft_edits.csv'
 SOFT_ENI_EDITS_SUFFIX = '_BADTR_SOFT_EDIT'
-SOFT_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/eni_soft_edits'
+SOFT_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 
 
 # reminder for preparing script - ignore
