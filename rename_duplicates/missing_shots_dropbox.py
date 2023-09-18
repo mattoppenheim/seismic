@@ -47,13 +47,6 @@ class MissingShots():
         self.main(directory_path, *args)
 
 
-    def correct_shot_name(self, file_name):
-        ''' Check that file_name is a valid segd file. '''
-        if file_name.endswith('.segd') and file_name[:5].isdigit():
-            return True
-        return False
-
-
     def display_duplicates(self, duplicates):
         ''' Display information about duplicated shots. '''
         if len(duplicates) == 0:
@@ -92,10 +85,10 @@ class MissingShots():
         self.display_duplicates(duplicates)
 
 
-    def drop_dir_path(self, sequence, dropbox_dir):
-        drop_dir_path = os.path.join(dropbox_dir, sequence)
-        if not os.path.exists(drop_dir_path):
-            logging.info('cannot find directory: {}'.format(drop_dir_path))
+    def dropbox_dir_path(self, sequence, dropbox_dir):
+        dropbox_dir_path = os.path.join(dropbox_dir, sequence)
+        if not os.path.exists(dropbox_dir_path):
+            logging.info('cannot find directory: {}'.format(dropbox_dir_path))
         return os.path.join(dropbox_dir, sequence)
 
 
@@ -143,7 +136,7 @@ class MissingShots():
         shot_list = []
         for filename in filename_list:
             # check that the file is a valid segd file
-            if not self.correct_shot_name(filename):
+            if not self.valid_shot_name(filename):
                 continue
             shot_list.append(int(filename[:5]))
         return shot_list
@@ -160,10 +153,17 @@ class MissingShots():
         return shot_list
 
 
+    def valid_shot_name(self, file_name):
+        ''' Check that file_name is a valid segd file. '''
+        if file_name.endswith('.segd') and file_name[:5].isdigit():
+            return True
+        return False
+
+
     def main(self, directory_path, args):
         sequence = args.sequence.__str__()
         logging.info('\nseq {}'.format(sequence))
-        self.directory_path = self.drop_dir_path(sequence, directory_path)
+        self.directory_path = self.dropbox_dir_path(sequence, directory_path)
         if not self.directory_path:
             return
         logging.info('directory: {}'.format(self.directory_path))
@@ -183,6 +183,7 @@ def sort_list(shot_list, is_incrementing):
     else:
         shot_list.sort(reverse=True)
     return shot_list
+
 
 def main(dropbox1, dropbox2, args):
     logging.info('\nlooking in: {} {}'.format(dropbox1, dropbox2))

@@ -19,7 +19,10 @@ I wrote the above to solve other problems, might as well extend their use.
 Inefficient code as the directory listing is read for each duplicate to create
 a dictionary containing information about each duplicate.
 
-Last update: 2023-09-08 Matthew Oppenheim.
+Not yet used in anger. Creates the mv commands and displays them in a logging.info line.
+Tested. Looks good to go.
+
+Last update: 2023-09-18 Matthew Oppenheim.
 '''
 
 import argparse
@@ -85,6 +88,7 @@ def oldest_duplicates(duplicate_tuple_list):
     # sort the tuples into age order
     duplicate_tuple_list.sort(key=lambda x:x[1], reverse=True)
     logging.debug('sorted tuples: {}'.format(duplicate_tuple_list))
+    # remove first element, which is the youngest
     oldest_duplicates = duplicate_tuple_list[1:]
     logging.debug('tuples to rename: {}'.format(oldest_duplicates))
     return oldest_duplicates
@@ -117,6 +121,7 @@ def main(directory, args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help='sequence(s) to find missing shots, can be a range')
+    parser.add_argument('dir', nargs='?', type=str, default=DROPBOX, help='directory to look for duplicates in')
     # comment out the following line for testing
     args = parser.parse_args()
     # uncomment the line below for testing
