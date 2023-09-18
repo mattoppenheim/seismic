@@ -29,8 +29,8 @@ SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv
 
 # Column numbers for information in the substitutions.csv file. Starts at 0:
 SUBS_LINENAME_COLUMN = 1
-SUBS_FSP_COLUMN = 3
-SUBS_LSP_COLUMN = 4
+SUBS_FSP_COLUMN = 7
+SUBS_LSP_COLUMN = 8
 SUBS_SEQ_COLUMN = 0
 # position in line name where the sail line is stored
 # e.g. in 2023HWT41183PAS3672, the sail line is 1183, which is slice(8,12)

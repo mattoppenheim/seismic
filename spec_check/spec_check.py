@@ -50,12 +50,12 @@ from substitutions import Subs
 import sys
 import tools
 
-
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+#logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+logging.getLogger().setLevel('DEBUG')
 
 
 # Location of edits directory
-EDITS_DIRECTORY = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/tables/edits/edits_linda'
+EDITS_DIRECTORY = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_linda'
 EDITS_FILENAME_SUFFIX = 'Hard_edits.csv'
 
 # spec for how many shots can be bad for an entire line
@@ -69,7 +69,7 @@ PERCENTAGE_SURVEY = 2
 # 7021 ENI 3D specs from Ref_03_AESI-M-BTP-01
 SPEC_TUPLES = [(6, 6), (8, 15), (12, 100)]
 
-SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Src/substitutions.csv'
+SUBS_FILEPATH = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/substitutions.csv'
 
 # Tuple used to store line information from substitutions.csv file
 Line_info = namedtuple('Line_info', 'sequence linename fsp lsp')
@@ -175,6 +175,8 @@ def spec_check_all_sequences(subs_tuples, spec_tuples):
     for subs_tuple in subs_tuples:
         sequence = subs_tuple.sequence
         logging.info('\nChecking sequence: {}'.format(sequence))
+        line_shots = total_line_shots(subs_tuple)
+        all_shots += line_shots
         bad_shots = read_edits_file(sequence)
         if bad_shots is None:
             logging.info('No bad shots for sequence: {}'.format(sequence))
@@ -183,11 +185,9 @@ def spec_check_all_sequences(subs_tuples, spec_tuples):
         # check the bad shots against the bad shots specs for a single line
         spec_check_single_line(bad_shots, spec_tuples)
         # check if % bad for entire line are in spec
-        line_shots = total_line_shots(subs_tuple)
         line_bad_shots = len(bad_shots)
         line_percentage_bad = percentage_bad(line_bad_shots, line_shots)
         check_line_spec(line_percentage_bad)
-        all_shots += line_shots
         all_bad_shots += line_bad_shots
     percentage_all_bad = percentage_bad(all_bad_shots, all_shots)
     check_survey_spec(percentage_all_bad)
