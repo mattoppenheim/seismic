@@ -31,7 +31,7 @@ RECEIVER_REVEAL_EDITS_SUFFIX = '_Rec_Depth_edits.csv'
 RECEIVER_ENI_EDITS_SUFFIX = '_BADTR_RECEIVER_DEPTH_EDIT'
 RECEIVER_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 
-SOURCE_REVEAL_EDITS_SUFFIX = '-Source-Depth-Edits-9999.csv'
+SOURCE_REVEAL_EDITS_SUFFIX = '_Src_Depth_edits.csv'
 SOURCE_ENI_EDITS_SUFFIX = '_BADTR_SOURCE_DEPTH_EDIT'
 SOURCE_ENI_OUTPUT_DIR = r'/nfs/D01/Reveal_Projects/7021_Eni_Hewett_Stmr/tables/edits/edits_ENI_Format'
 

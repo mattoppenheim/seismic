@@ -5,20 +5,20 @@ Scripts for creating ENI format edits.
 Input: Reveal format .csv edit file
 Output: ENI format file
 
-The file all_edits.py is used to create the edit files. The other files in the
+The file create_eni_edits.py is used to create the edit files. The other files in the
 directory are used by this script.
 
 ## to run
 
 To run:
 
-./all_eni_edits.py <sequences>
+./create_eni_edits.py <sequences>
 
 A single or a range of sequences needs to be supplied.
 
 e.g.
 
-./all_eni_edits.py 3-45
+./create_eni_edits.py 3-45
 
 ## edits file contents
 
@@ -37,7 +37,7 @@ _Hard_shot_edits.csv files are different. They only have shot_1, shot_2 informat
 The output format conforms to the requirements in 05.5_Ref_02__AESI-P-MAN-02-Rev01.PDF.
 
 eni_edits.py contains the EniEdits class. This class is used by
-all_eni_edits.py script to create ENI format edits.
+create_eni_edits.py script to create ENI format edits.
 
 The script pads out the sequences to be 3 characters, e.g. 003.
 

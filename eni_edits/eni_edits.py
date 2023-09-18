@@ -223,6 +223,8 @@ class EniEdits:
         ''' Process a single sequence. '''
         seq_line_ident = self.line_ident(seq)
         reveal_edits_filepath = self.reveal_edits_path(seq, self.reveal_suffix)
+        if not(reveal_edits_filepath):
+            exit_code('no edits filepath for: {}'.format(self.reveal_suffix))
         out_filepath = self.output_filepath(seq, seq_line_ident, self.eni_output_dir)
         self.initialise_file(out_filepath)
         self.write_header(seq_line_ident, out_filepath)
